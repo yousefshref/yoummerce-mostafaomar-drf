@@ -98,7 +98,12 @@ class Order(models.Model):
             self.total_order = order_items.aggregate(Sum('order_item_sell_price'))['order_item_sell_price__sum']
         else:
             self.total_order = order_items.aggregate(Sum('order_item_sell_price'))['order_item_sell_price__sum'] + self.discount
-        self.total_earning = order_items.aggregate(Sum('order_earning'))['order_earning__sum']
+
+        if self.discount == 0:
+            self.total_earning = order_items.aggregate(Sum('order_earning'))['order_earning__sum']
+        else:
+            self.total_earning = order_items.aggregate(Sum('order_earning'))['order_earning__sum'] + self.discount
+            
         self.total_commission = order_items.aggregate(Sum('order_ecommission'))['order_ecommission__sum']
 
         try:
