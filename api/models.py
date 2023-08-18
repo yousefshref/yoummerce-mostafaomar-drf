@@ -82,6 +82,7 @@ class Order(models.Model):
     state = models.ForeignKey(State, null=True, blank=True, on_delete=models.CASCADE)
     shipping = models.IntegerField(null=True, blank=True, default=0)
     is_arrived = models.ForeignKey(Shipped, default=Shipped.objects.get(pk=1).pk , related_name='is_arrived', null=True, blank=True, on_delete=models.CASCADE)
+    discount = models.IntegerField(null=True, blank=True, default=0)
     total_order = models.IntegerField(null=True, blank=True, default=0)
     total_earning = models.IntegerField(null=True, blank=True, default=0)
     total_commission = models.IntegerField(null=True, blank=True, default=0)
@@ -93,7 +94,10 @@ class Order(models.Model):
         self.shipping = State.objects.get(name=self.state.name).shipping
         print(self.state.id)
 
-        self.total_order = order_items.aggregate(Sum('order_item_sell_price'))['order_item_sell_price__sum']
+        if self.discount == 0:
+            self.total_order = order_items.aggregate(Sum('order_item_sell_price'))['order_item_sell_price__sum']
+        else:
+            self.total_order = order_items.aggregate(Sum('order_item_sell_price'))['order_item_sell_price__sum'] + self.discount
         self.total_earning = order_items.aggregate(Sum('order_earning'))['order_earning__sum']
         self.total_commission = order_items.aggregate(Sum('order_ecommission'))['order_ecommission__sum']
 

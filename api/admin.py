@@ -34,7 +34,7 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'is_arrived',)
                     
-    fields = ('user', 'name', 'address', 'phone', 'notes', 'state', 'shipping', 'is_arrived', 'total_order', 'total_earning', 'total_commission',)
+    fields = ('user', 'name', 'address', 'phone', 'notes', 'state', 'shipping', 'is_arrived', 'discount', 'total_order', 'total_earning', 'total_commission',)
     
         
     list_editable = ('is_arrived',)
@@ -58,7 +58,7 @@ class OrderAdmin(admin.ModelAdmin):
 
     def get_fields(self, request, obj=None):
         if not request.user.is_superuser:
-            self.fields = ('user', 'name', 'address', 'phone', 'notes', 'state', 'shipping', 'is_arrived', 'total_order', 'total_commission',)
+            self.fields = ('user', 'name', 'address', 'phone', 'notes', 'state', 'shipping', 'is_arrived', 'discount', 'total_order', 'total_commission',)
         return super().get_fields(request, obj)
     
 
