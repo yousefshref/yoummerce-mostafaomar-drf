@@ -78,6 +78,7 @@ class Order(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
     address = models.CharField(max_length=100, null=True, blank=True)
     phone = models.IntegerField(null=True, blank=True, default=0)
+    notes = models.CharField(max_length=100, null=True, blank=True)
     state = models.ForeignKey(State, null=True, blank=True, on_delete=models.CASCADE)
     shipping = models.IntegerField(null=True, blank=True, default=0)
     is_arrived = models.ForeignKey(Shipped, default=Shipped.objects.get(pk=1).pk , related_name='is_arrived', null=True, blank=True, on_delete=models.CASCADE)
@@ -122,6 +123,7 @@ class Order(models.Model):
 # "user":1,
 # "name":"dass",
 # "address":"111a",
+# "notes":"111a",
 # "phone":11131,
 # "address":"111a",
 # "state":2
