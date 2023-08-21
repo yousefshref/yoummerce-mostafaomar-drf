@@ -13,7 +13,7 @@ class ProductImageInline(admin.TabularInline):
 
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'buy_price', 'sell_price', 'before_disc', 'commission','earning',
+    list_display = ('id', 'title', 'buy_price', 'total_buy_price', 'sell_price', 'total_sell_price', 'before_disc', 'commission','earning', 'total_earning',
                     'stock', 'add_stock', 'remove_stock', 'date',)
 
     list_editable = ('buy_price', 'sell_price', 'before_disc', 'commission', 'stock',
@@ -23,15 +23,38 @@ class ProductAdmin(admin.ModelAdmin):
 
     inlines = [ProductImageInline]
 
-    # delete earning from fiekds if not superuser
-    # def get_list_display(self, request):
-    #     if request.user.is_superuser:
-    #         return ('id', 'earning',) + self.list_display
+    change_list_template = 'product/change_list.html'
 
-    #     if not request.user.is_superuser:
-    #         return ('id',) + self.list_display
+    
+    def sum_of_buy_price(self):
+        product_model = models.Product.objects.all()
+        buy_price_sum = product_model.aggregate(Sum('total_buy_price'))[
+            'total_buy_price__sum']
+        return buy_price_sum
+    
+    def sum_of_sell_price(self):
+        product_model = models.Product.objects.all()
+        sell_price_sum = product_model.aggregate(Sum('total_sell_price'))[
+            'total_sell_price__sum']
+        return sell_price_sum
+
+    def sum_of_earning(self):
+        product_model = models.Product.objects.all()
+        earning_sum = product_model.aggregate(Sum('total_earning'))[
+            'total_earning__sum']
+        return earning_sum
 
 
+    def changelist_view(self, request, extra_context=None):
+
+        my_context = {
+            'earning_sum': self.sum_of_earning(),
+            'buy_price_sum': self.sum_of_buy_price(),
+            'sell_price_sum': self.sum_of_sell_price(),
+        }
+
+        return super(ProductAdmin, self).changelist_view(request,
+                                                    extra_context=my_context)
 
 class OrderItemInline(admin.TabularInline):
     fields = ('product', 'quantity', 'order_item_sell_price', 'order_earning', 'order_ecommission')
@@ -242,11 +265,15 @@ class OrderAdmin(admin.ModelAdmin):
                                                     extra_context=my_context)
 
 
+class StateAdmin(admin.ModelAdmin):
+    list_display = ('id','name', 'shipping',)
+
+    list_editable = ('name', 'shipping',)
 
 
 
 admin.site.register(models.Order, OrderAdmin)
-admin.site.register(models.State)
+admin.site.register(models.State, StateAdmin)
 admin.site.register(models.Category)
 admin.site.register(models.Shipped)
 admin.site.register(models.Cart)

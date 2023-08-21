@@ -16,9 +16,12 @@ class Product(models.Model):
     title = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(max_length=100, null=True, blank=True)
     buy_price = models.IntegerField(blank=True, null=True, default=0)
+    total_buy_price = models.IntegerField(blank=True, null=True, default=0)
     sell_price = models.IntegerField(blank=True, null=True, default=0)
+    total_sell_price = models.IntegerField(blank=True, null=True, default=0)
     before_disc = models.IntegerField(blank=True, null=True, default=0)
     earning = models.IntegerField(blank=True, null=True, default=0)
+    total_earning = models.IntegerField(blank=True, null=True, default=0)
     commission = models.IntegerField(blank=True, null=True, default=0)
     stock = models.IntegerField(blank=True, null=True, default=0)
     add_stock = models.IntegerField(blank=True, null=True, default=0)
@@ -26,6 +29,15 @@ class Product(models.Model):
     category = models.ForeignKey(Category, blank=True, null=True, on_delete=models.CASCADE)
     related_products = models.ManyToManyField('self', blank=True)
     date = models.DateField(auto_now_add=True,null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+
+        self.total_buy_price = self.buy_price * self.stock
+        self.total_sell_price = self.sell_price * self.stock
+        self.total_earning = self.earning * self.stock
+
+        super(Product, self).save(*args, **kwargs)
+
 
     def __str__(self):
         return str(self.title) + ' ' + str(self.id)
