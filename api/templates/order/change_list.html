@@ -1,0 +1,16 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+{{ block.super }}
+<div style='margin:10px'>
+    <hr style='margin:0 0 13px 0'>
+    <h1>Total Orders:<p style='color:green'>{{order_sum}}</p></h1>
+    <hr>
+    <hr style='margin:0 0 13px 0'>
+    <h1>Total Earning:<p style='color:green'>{{earning_sum}}</p></h1>
+    <hr>
+    <hr style='margin:0 0 13px 0'>
+    <h1>Total Commission:<p style='color:green'>{{commission_sum}}</p></h1>
+    <hr>
+</div>
+{% endblock %}
