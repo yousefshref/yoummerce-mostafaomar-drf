@@ -68,6 +68,8 @@ def product(request):
 
 
 
+    products = products.order_by('title')
+
     serializer = serializers.ProductSerializer(products, many=True)
     return Response(serializer.data)
 # http://127.0.0.1:8000/products/?search=&category=&from=&to=  
@@ -78,6 +80,8 @@ def one_product(request, pk):
     product = models.Product.objects.get(id=pk)
     serializer = serializers.ProductSerializer(product)
     return Response(serializer.data)
+
+
 
 @api_view(['POST'])
 def create_update_cart(request):
@@ -158,6 +162,8 @@ def get_user_orders(request, userpk):
 
     else:
         orders = orders.filter(user=userpk)
+
+    orders = orders.order_by('-id')
 
     serializer = serializers.OrderSerializer(orders, many=True)
     return Response(serializer.data)
