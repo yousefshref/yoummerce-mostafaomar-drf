@@ -6,6 +6,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
+from django.core.paginator import Paginator
 
 
 @api_view(['GET'])
@@ -57,22 +58,24 @@ def product(request):
     if search_param:
         products = products.filter(title__icontains=search_param)
 
-    
     # Filter with price range
     if from_price_param and to_price_param:
         products = products.filter(sell_price__gte=from_price_param, sell_price__lte=to_price_param)
 
-    # get all
-    if not search_param and not category_param and not from_price_param and not to_price_param:
-        products = models.Product.objects.all()
+    # Apply pagination
+    paginator = Paginator(products, 20)  # Number of items per page
+    page_number = request.GET.get('page_number')
+    page_obj = paginator.get_page(page_number)
+    paginated_products = page_obj.object_list
 
-
-
-    products = products.order_by('title')
-
-    serializer = serializers.ProductSerializer(products, many=True)
-    return Response(serializer.data)
-# http://127.0.0.1:8000/products/?search=&category=&from=&to=  
+    serializer = serializers.ProductSerializer(paginated_products, many=True)
+    data = {
+        'results': serializer.data,
+        'totalPages': paginator.num_pages,
+        'currentPage': page_obj.number,
+    }
+    return Response(data)
+# http://127.0.0.1:8000/products/?search=&category=&from=&to=
 
 
 @api_view(['GET'])
