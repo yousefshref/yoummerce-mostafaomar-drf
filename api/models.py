@@ -121,6 +121,10 @@ class Order(models.Model):
 
         super(Order, self).save(*args, **kwargs)
 
+        # auto delete if there's no order items
+        if not order_items:
+            self.delete()
+
 
     def delete(self, *args, **kwargs):
         order_items = OrderItems.objects.filter(order_item=self.id)
