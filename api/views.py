@@ -62,6 +62,9 @@ def product(request):
     if from_price_param and to_price_param:
         products = products.filter(sell_price__gte=from_price_param, sell_price__lte=to_price_param)
 
+    # Order by ID
+    products = products.order_by('title')
+
     # Apply pagination
     paginator = Paginator(products, 20)  # Number of items per page
     page_number = request.GET.get('page_number')

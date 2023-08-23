@@ -48,7 +48,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 
-
 class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.State
