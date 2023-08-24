@@ -120,6 +120,10 @@ class Order(models.Model):
             print('aaaa')
 
         super(Order, self).save(*args, **kwargs)
+        
+        # auto delete if there's no order items
+        if not order_items:
+            self.delete()
 
 
     def delete(self, *args, **kwargs):
