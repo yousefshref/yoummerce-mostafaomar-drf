@@ -41,7 +41,7 @@ class Product(models.Model):
 
     def __str__(self):
         return str(self.title) + ' ' + str(self.id)
-    
+
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE, null=True, blank=True)
     alt = models.CharField(max_length=100, null=True, blank=True)
@@ -49,7 +49,7 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return str(self.product.title)
-    
+
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
@@ -87,9 +87,9 @@ class Shipped(models.Model):
 
 class Order(models.Model):
     user = models.ForeignKey(User, null=True, blank=True, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, null=True, blank=True)
-    address = models.CharField(max_length=100, null=True, blank=True)
-    phone = models.IntegerField(null=True, blank=True, default=0)
+    name = models.CharField(max_length=500, null=True, blank=True)
+    address = models.CharField(max_length=500, null=True, blank=True)
+    phone = models.CharField(max_length=500, null=True, blank=True, default=0)
     note = models.TextField(max_length=500, null=True, blank=True)
     state = models.ForeignKey(State, null=True, blank=True, on_delete=models.CASCADE)
     shipping = models.IntegerField(null=True, blank=True, default=0)
@@ -120,10 +120,8 @@ class Order(models.Model):
             print('aaaa')
 
         super(Order, self).save(*args, **kwargs)
-        
+
         # auto delete if there's no order items
-        if not order_items:
-            self.delete()
 
 
     def delete(self, *args, **kwargs):
@@ -157,7 +155,7 @@ class OrderItems(models.Model):
     order_item = models.ForeignKey(Order, related_name='order_item', null=True, blank=True, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE)
     quantity = models.IntegerField(null=True, blank=True)
-    
+
     order_item_sell_price = models.IntegerField(null=True, blank=True)
     order_earning = models.IntegerField(null=True, blank=True)
     order_ecommission = models.IntegerField(null=True, blank=True)

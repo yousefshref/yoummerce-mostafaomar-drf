@@ -18,20 +18,20 @@ class ProductAdmin(admin.ModelAdmin):
 
     list_editable = ('buy_price', 'sell_price', 'before_disc', 'commission', 'stock',
                      'add_stock', 'remove_stock',)
-    
+
     search_fields = ('title', 'stock',)
 
     inlines = [ProductImageInline]
 
     change_list_template = 'product/change_list.html'
 
-    
+
     def sum_of_buy_price(self):
         product_model = models.Product.objects.all()
         buy_price_sum = product_model.aggregate(Sum('total_buy_price'))[
             'total_buy_price__sum']
         return buy_price_sum
-    
+
     def sum_of_sell_price(self):
         product_model = models.Product.objects.all()
         sell_price_sum = product_model.aggregate(Sum('total_sell_price'))[
@@ -68,57 +68,78 @@ class OrderItemInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'get_list_display', 'is_arrived','discount',)
-                    
-    fields = ('user', 'name', 'address', 'phone', 'note', 'state', 'shipping', 'is_arrived', 'discount', 'total_order', 'total_earning', 'total_commission',)
-    
-        
-    list_editable = ('is_arrived','discount',)
+    list_display = ('id', 'note', 'get_list_display', 'is_arrived','discount','state')
+
+    fields = ('user', 'name', 'note', 'address', 'phone',  'state', 'shipping', 'is_arrived', 'discount', 'total_order', 'total_earning', 'total_commission',)
+
+
+    list_editable = ('is_arrived','state','discount',)
     search_fields = ('user__username', 'name', 'address',)
-    actions = ("arrived", "ontheway","pending",)
+    actions = ("arrived", "ontheway","pending","parted","mortaga3","cancel")
     list_filter = (
         ("date", DateRangeFilterBuilder()),
         'is_arrived'
     )
 
-    
+
 
     inlines = [OrderItemInline]
 
     # delete earning from fiekds if not superuser
     def get_list_display(self, request):
         if request.user.is_superuser:
-            return ('id','user', 'name', 'address', 'phone', 'is_arrived', 'state', 'shipping', 'total_order', 'total_earning', 'total_commission', 'discount', 'date',)
+            return ('id','user', 'name', 'address', 'phone', 'is_arrived', 'state', 'discount', 'shipping', 'total_order', 'total_earning', 'total_commission', 'date',)
 
         if not request.user.is_superuser:
-            return ('id','user', 'name', 'address', 'phone', 'is_arrived', 'state', 'shipping', 'total_order', 'total_commission', 'discount', 'date',)
+            return ('id','user', 'name', 'address', 'phone', 'is_arrived', 'state', 'discount', 'shipping', 'total_order', 'total_commission', 'date',)
 
     def get_fields(self, request, obj=None):
         if not request.user.is_superuser:
             self.fields = ('user', 'name', 'address', 'phone', 'note', 'state', 'shipping', 'is_arrived', 'discount', 'total_order', 'total_commission',)
         return super().get_fields(request, obj)
-    
+
 
 
     change_list_template = 'order/change_list.html'
 
     # actions
-    @admin.action(description='arrived')
-    def arrived(modeladmin, request, queryset):
+    @admin.action(description='لاغي')
+    def cancel(modeladmin, request, queryset):
         for obj in queryset:
-            obj.is_arrived = models.Shipped.objects.get(id=1)
+            obj.is_arrived = models.Shipped.objects.get(id=10)
             obj.save()
 
-    @admin.action(description='on the way')
+
+    @admin.action(description='مرتجع')
+    def mortaga3(modeladmin, request, queryset):
+        for obj in queryset:
+            obj.is_arrived = models.Shipped.objects.get(id=9)
+            obj.save()
+
+
+    @admin.action(description='تسليم جزئي')
+    def parted(modeladmin, request, queryset):
+        for obj in queryset:
+            obj.is_arrived = models.Shipped.objects.get(id=8)
+            obj.save()
+
+
+    @admin.action(description='تسليم ناجح')
+    def arrived(modeladmin, request, queryset):
+        for obj in queryset:
+            obj.is_arrived = models.Shipped.objects.get(id=6)
+            obj.save()
+
+    @admin.action(description='قيد الشحن')
     def ontheway(modeladmin, request, queryset):
         for obj in queryset:
-            obj.is_arrived = models.Shipped.objects.get(id=2)
+            obj.is_arrived = models.Shipped.objects.get(id=5)
             obj.save()
-            
-    @admin.action(description='pending')
+
+    @admin.action(description='قيد المراجعة')
     def pending(modeladmin, request, queryset):
         for obj in queryset:
-            obj.is_arrived = models.Shipped.objects.get(id=3)
+            obj.is_arrived = models.Shipped.objects.get(id=4)
             obj.save()
 
 
@@ -195,7 +216,7 @@ class OrderAdmin(admin.ModelAdmin):
 
                 return super(OrderAdmin, self).changelist_view(request,
                                                             extra_context=my_context)
-                                                            
+
             if request.GET.get('is_arrived__id__exact') and request.user.is_superuser:
                 arrived = request.GET.get('is_arrived__id__exact')
 
@@ -219,7 +240,7 @@ class OrderAdmin(admin.ModelAdmin):
             else:
                 return super(OrderAdmin, self).changelist_view(request,
                                                             extra_context=my_context)
-                                                            
+
         if request.GET.get('date__range__gte') and request.GET.get('date__range__lte') and request.user.is_superuser:
             start_date = request.GET.get('date__range__gte')
             end_date = request.GET.get('date__range__lte')
@@ -259,7 +280,7 @@ class OrderAdmin(admin.ModelAdmin):
 
             return super(OrderAdmin, self).changelist_view(request,
                                                         extra_context=my_context)
-            
+
 
         return super(OrderAdmin, self).changelist_view(request,
                                                     extra_context=my_context)

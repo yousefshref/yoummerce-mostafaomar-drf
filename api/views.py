@@ -212,7 +212,7 @@ def login_credentials(request):
             else:
                 print(user.check_password(password))
                 return Response({"faild":"password is incorrect"})
-        
+
     except User.DoesNotExist:
         return Response({"faild_email":"User does not exist, Try to register"})
 # {
