@@ -70,7 +70,7 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'note', 'get_list_display', 'is_arrived','discount','state')
 
-    fields = ('user', 'name', 'note', 'address', 'phone',  'state', 'shipping', 'is_arrived', 'discount', 'total_order', 'total_earning', 'total_commission',)
+    fields = ('user', 'name', 'note', 'address', 'phone', 'phone2', 'state', 'shipping', 'is_arrived', 'discount', 'total_order', 'total_earning', 'total_commission',)
 
 
     list_editable = ('is_arrived','state','discount',)
@@ -88,14 +88,14 @@ class OrderAdmin(admin.ModelAdmin):
     # delete earning from fiekds if not superuser
     def get_list_display(self, request):
         if request.user.is_superuser:
-            return ('id','user', 'name', 'address', 'phone', 'is_arrived', 'state', 'discount', 'shipping', 'total_order', 'total_earning', 'total_commission', 'date',)
+            return ('id','user', 'name', 'address', 'phone', 'phone2', 'is_arrived', 'state', 'discount', 'shipping', 'total_order', 'total_earning', 'total_commission', 'date',)
 
         if not request.user.is_superuser:
-            return ('id','user', 'name', 'address', 'phone', 'is_arrived', 'state', 'discount', 'shipping', 'total_order', 'total_commission', 'date',)
+            return ('id','user', 'name', 'address', 'phone', 'phone2', 'is_arrived', 'state', 'discount', 'shipping', 'total_order', 'total_commission', 'date',)
 
     def get_fields(self, request, obj=None):
         if not request.user.is_superuser:
-            self.fields = ('user', 'name', 'address', 'phone', 'note', 'state', 'shipping', 'is_arrived', 'discount', 'total_order', 'total_commission',)
+            self.fields = ('user', 'name', 'address', 'phone', 'phone2', 'note', 'state', 'shipping', 'is_arrived', 'discount', 'total_order', 'total_commission',)
         return super().get_fields(request, obj)
 
 

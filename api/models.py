@@ -90,6 +90,7 @@ class Order(models.Model):
     name = models.CharField(max_length=500, null=True, blank=True)
     address = models.CharField(max_length=500, null=True, blank=True)
     phone = models.CharField(max_length=500, null=True, blank=True, default=0)
+    phone2 = models.CharField(max_length=500, null=True, blank=True, default=0)
     note = models.TextField(max_length=500, null=True, blank=True)
     state = models.ForeignKey(State, null=True, blank=True, on_delete=models.CASCADE)
     shipping = models.IntegerField(null=True, blank=True, default=0)
