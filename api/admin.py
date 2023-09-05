@@ -57,7 +57,7 @@ class ProductAdmin(admin.ModelAdmin):
                                                     extra_context=my_context)
 
 class OrderItemInline(admin.TabularInline):
-    fields = ('product', 'quantity', 'order_item_sell_price', 'order_earning', 'order_ecommission')
+    fields = ('product', 'is_returned', 'quantity', 'order_item_sell_price', 'order_earning', 'order_ecommission')
     model = models.OrderItems
     extra = 1
 

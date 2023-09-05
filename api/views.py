@@ -248,3 +248,27 @@ def register_credentials(request):
             return Response({"success":"Successfully created your accound, Enjoy 😄"})
     except:
         return Response({"faild_information":"Error: please check the fields DO NOT make spaces in username or email and the password more than 20 char"})
+
+
+
+
+
+
+
+# cancel order
+@api_view(['POST'])
+def cancel_order(request):
+    order_id_param = request.GET.get('order_id')
+
+    order = models.Order.objects.get(id=order_id_param)
+
+    # serializer = serializers.OrderSerializer(order, data=request.data)
+    
+    # if serializer.is_valid():
+    #     serializer.save()
+
+    order.is_arrived = models.Shipped.objects.get(id=10)
+
+    order.save()
+
+    return Response({"success":"successfully cancelled"})

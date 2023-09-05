@@ -33,6 +33,11 @@ urlpatterns = [
 
     path('create_order/', views.create_order),
     path('create_order_item/', views.create_order_item),
+
+
+    # cancel order
+    path('cancel_order/', views.cancel_order), # order_id in params and add in json { "is_arrived" : 4 }
+    # cancel order
 ]
 if settings.DEBUG:
   urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

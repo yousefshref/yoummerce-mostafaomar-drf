@@ -94,7 +94,7 @@ class Order(models.Model):
     note = models.TextField(max_length=500, null=True, blank=True)
     state = models.ForeignKey(State, null=True, blank=True, on_delete=models.CASCADE)
     shipping = models.IntegerField(null=True, blank=True, default=0)
-    is_arrived = models.ForeignKey(Shipped, default=Shipped.objects.get(pk=1).pk , related_name='is_arrived', null=True, blank=True, on_delete=models.CASCADE)
+    is_arrived = models.ForeignKey(Shipped, default=Shipped.objects.get(pk=4).pk , related_name='is_arrived', null=True, blank=True, on_delete=models.CASCADE)
     discount = models.IntegerField(null=True, blank=True, default=0)
     total_order = models.IntegerField(null=True, blank=True, default=0)
     total_earning = models.IntegerField(null=True, blank=True, default=0)
@@ -114,6 +114,41 @@ class Order(models.Model):
             self.total_earning = order_items.aggregate(Sum('order_earning'))['order_earning__sum']
 
         self.total_commission = order_items.aggregate(Sum('order_ecommission'))['order_ecommission__sum']
+
+        if self.is_arrived.pk == 10:
+            for order_item in order_items:
+                order_item.quantity = 0
+                order_item.save()
+                # order_item.save_base()
+
+            self.total_order = 0
+            self.state.shipping = 0
+            self.total_earning = 0
+            self.total_commission = 0
+            self.shipping = 0
+
+
+        if self.is_arrived.pk == 9:
+            for order_item in order_items:
+                order_item.quantity = 0
+                order_item.save()
+                # order_item.save_base()
+
+            self.total_order = -abs(self.state.shipping)
+            self.total_earning = -abs(self.state.shipping)
+            self.state.shipping = 0
+            self.total_commission = 0
+            self.shipping = 0
+
+
+        # returned
+        returned_items = OrderItems.objects.filter(order_item=self.pk, is_returned=True)
+
+        if self.is_arrived.pk == 8 and returned_items:
+            self.total_order = self.total_order - returned_items.aggregate(Sum('order_item_sell_price'))['order_item_sell_price__sum']
+            self.total_earning = self.total_earning - returned_items.aggregate(Sum('order_earning'))['order_earning__sum']
+            self.total_commission = self.total_commission - returned_items.aggregate(Sum('order_ecommission'))['order_ecommission__sum']
+
 
         try:
             self.total_order = self.total_order + self.state.shipping
@@ -157,6 +192,8 @@ class OrderItems(models.Model):
     product = models.ForeignKey(Product, null=True, blank=True, on_delete=models.CASCADE)
     quantity = models.IntegerField(null=True, blank=True)
 
+    is_returned = models.BooleanField(default=False, null=True, blank=True)
+
     order_item_sell_price = models.IntegerField(null=True, blank=True)
     order_earning = models.IntegerField(null=True, blank=True)
     order_ecommission = models.IntegerField(null=True, blank=True)
@@ -184,12 +221,21 @@ class OrderItems(models.Model):
                 self.product.save()
         else:
             raise MyException('No Enough Stock')
+        
 
         super(OrderItems, self).save(*args, **kwargs)
-
+        
         if self.order_item_id:
             self.order_item.save()
 
+        # returned
+        order = Order.objects.get(id=self.order_item.pk)
+        if self.is_returned == True:
+            order.is_arrived = Shipped.objects.get(id=8)
+            order.save()
+
+
+            
 
     def delete(self, *args, **kwargs):
         self.product.stock = self.product.stock + self.quantity
