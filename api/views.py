@@ -171,8 +171,19 @@ def get_user_orders(request, userpk):
 
     orders = orders.order_by('-id')
 
-    serializer = serializers.OrderSerializer(orders, many=True)
-    return Response(serializer.data)
+    # Apply pagination
+    paginator = Paginator(orders, 15)  # Number of items per page
+    page_number = request.GET.get('page_number')
+    page_obj = paginator.get_page(page_number)
+    paginated_products = page_obj.object_list
+
+    serializer = serializers.OrderSerializer(paginated_products, many=True)
+    data = {
+        'results': serializer.data,
+        'totalPages': paginator.num_pages,
+        'currentPage': page_obj.number,
+    }
+    return Response(data)
 
 
 
