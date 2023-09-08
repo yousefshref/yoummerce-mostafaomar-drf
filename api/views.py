@@ -172,7 +172,7 @@ def get_user_orders(request, userpk):
     orders = orders.order_by('-id')
 
     # Apply pagination
-    paginator = Paginator(orders, 15)  # Number of items per page
+    paginator = Paginator(orders, 60)  # Number of items per page
     page_number = request.GET.get('page_number')
     page_obj = paginator.get_page(page_number)
     paginated_products = page_obj.object_list
@@ -274,7 +274,7 @@ def cancel_order(request):
     order = models.Order.objects.get(id=order_id_param)
 
     # serializer = serializers.OrderSerializer(order, data=request.data)
-    
+
     # if serializer.is_valid():
     #     serializer.save()
 

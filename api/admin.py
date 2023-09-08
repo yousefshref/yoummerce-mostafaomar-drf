@@ -20,6 +20,7 @@ class ProductAdmin(admin.ModelAdmin):
                      'add_stock', 'remove_stock',)
 
     search_fields = ('title', 'stock',)
+    # search = ("title",)
 
     inlines = [ProductImageInline]
 
@@ -74,7 +75,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 
     list_editable = ('is_arrived','state','discount',)
-    search_fields = ('user__username', 'name', 'address',)
+    search_fields = ('user__username', 'name', 'address','total_order',)
     actions = ("arrived", "ontheway","pending","parted","mortaga3","cancel")
     list_filter = (
         ("date", DateRangeFilterBuilder()),
@@ -163,6 +164,31 @@ class OrderAdmin(admin.ModelAdmin):
         return commission_sum
 
     def changelist_view(self, request, extra_context=None):
+        response = super().changelist_view(request, extra_context=extra_context)
+        queryset = models.Order.objects.all()
+            
+        
+        if request.GET.get('date__range__gte') and request.GET.get('date__range__lte'):
+            queryset = models.Order.objects.filter(date__range=[request.GET.get('date__range__gte'), request.GET.get('date__range__lte')])
+            
+        if request.GET.get('q'):
+            queryset = models.Order.objects.filter(Q(user__username__icontains=request.GET.get('q')) | Q(name__icontains=request.GET.get('q')) | Q(address__icontains=request.GET.get('q')) | Q(total_order__icontains=request.GET.get('q')))
+            
+        if request.GET.get('q') and request.GET.get('date__range__gte') and request.GET.get('date__range__lte'):
+            queryset = models.Order.objects.filter(date__range=[request.GET.get('date__range__gte'), request.GET.get('date__range__lte')]).filter(Q(user__username__icontains=request.GET.get('q')) | Q(name__icontains=request.GET.get('q')) | Q(address__icontains=request.GET.get('q')) | Q(total_order__icontains=request.GET.get('q')))
+            
+        if request.GET.get('is_arrived__id__exact') and request.GET.get('date__range__gte') and request.GET.get('date__range__lte'):
+            queryset = models.Order.objects.filter(date__range=[request.GET.get('date__range__gte'), request.GET.get('date__range__lte')]).filter(is_arrived=request.GET.get('is_arrived__id__exact'))
+            
+        order_sum = queryset.aggregate(Sum('total_order'))[
+            'total_order__sum']
+        
+        earning_sum = queryset.aggregate(Sum('total_earning'))[
+            'total_earning__sum']
+        
+        commission_sum = queryset.aggregate(Sum('total_commission'))[
+            'total_commission__sum']
+        
         if not request.user.is_superuser:
             my_context = {
                 'earning_sum': 0,
@@ -171,116 +197,10 @@ class OrderAdmin(admin.ModelAdmin):
             }
         else:
             my_context = {
-                'earning_sum': self.sum_of_earning(),
-                'order_sum': self.sum_of_order(),
-                'commission_sum': self.sum_of_commission(),
+                'earning_sum': earning_sum,
+                'order_sum': order_sum,
+                'commission_sum': commission_sum,
             }
-
-
-        # check if there is a search
-        if request.GET.get('q') and request.user.is_superuser:
-            searched_objects = models.Order.objects.filter(
-                Q(user__username__icontains=request.GET.get('q')) |
-                Q(name__icontains=request.GET.get('q')) |
-                Q(address__icontains=request.GET.get('q'))
-            )
-            order_sum = searched_objects.aggregate(Sum('total_order'))[
-                'total_order__sum']
-            earning_sum = searched_objects.aggregate(Sum('total_earning'))[
-                'total_earning__sum']
-            commission_sum = searched_objects.aggregate(Sum('total_commission'))[
-                'total_commission__sum']
-            my_context.update({
-                'earning_sum': earning_sum,
-                'order_sum': order_sum,
-                'commission_sum': commission_sum,
-            })
-
-            if request.GET.get('date__range__gte') and request.GET.get('date__range__lte') and request.user.is_superuser:
-                start_date = request.GET.get('date__range__gte')
-                end_date = request.GET.get('date__range__lte')
-
-                filtered_objects = searched_objects.filter(date__range=(start_date, end_date))
-
-                order_sum = filtered_objects.aggregate(Sum('total_order'))[
-                    'total_order__sum']
-                earning_sum = filtered_objects.aggregate(Sum('total_earning'))[
-                    'total_earning__sum']
-                commission_sum = filtered_objects.aggregate(Sum('total_commission'))[
-                    'total_commission__sum']
-                my_context.update({
-                    'earning_sum': earning_sum,
-                    'order_sum': order_sum,
-                    'commission_sum': commission_sum,
-                })
-
-                return super(OrderAdmin, self).changelist_view(request,
-                                                            extra_context=my_context)
-
-            if request.GET.get('is_arrived__id__exact') and request.user.is_superuser:
-                arrived = request.GET.get('is_arrived__id__exact')
-
-                filtered_objects = searched_objects.filter(is_arrived=arrived)
-
-                order_sum = filtered_objects.aggregate(Sum('total_order'))[
-                    'total_order__sum']
-                earning_sum = filtered_objects.aggregate(Sum('total_earning'))[
-                    'total_earning__sum']
-                commission_sum = filtered_objects.aggregate(Sum('total_commission'))[
-                    'total_commission__sum']
-                my_context.update({
-                    'earning_sum': earning_sum,
-                    'order_sum': order_sum,
-                    'commission_sum': commission_sum,
-                })
-
-                return super(OrderAdmin, self).changelist_view(request,
-                                                            extra_context=my_context)
-
-            else:
-                return super(OrderAdmin, self).changelist_view(request,
-                                                            extra_context=my_context)
-
-        if request.GET.get('date__range__gte') and request.GET.get('date__range__lte') and request.user.is_superuser:
-            start_date = request.GET.get('date__range__gte')
-            end_date = request.GET.get('date__range__lte')
-
-            filtered_objects = models.Order.objects.filter(date__range=(start_date, end_date))
-
-            order_sum = filtered_objects.aggregate(Sum('total_order'))[
-                'total_order__sum']
-            earning_sum = filtered_objects.aggregate(Sum('total_earning'))[
-                'total_earning__sum']
-            commission_sum = filtered_objects.aggregate(Sum('total_commission'))[
-                'total_commission__sum']
-            my_context.update({
-                'earning_sum': earning_sum,
-                'order_sum': order_sum,
-                'commission_sum': commission_sum,
-            })
-
-            return super(OrderAdmin, self).changelist_view(request,
-                                                            extra_context=my_context)
-
-        if request.GET.get('is_arrived__id__exact') and request.user.is_superuser:
-            arrived = request.GET.get('is_arrived__id__exact')
-
-            filtered_objects = models.Order.objects.filter(is_arrived=arrived)
-            order_sum = filtered_objects.aggregate(Sum('total_order'))[
-                'total_order__sum']
-            earning_sum = filtered_objects.aggregate(Sum('total_earning'))[
-                'total_earning__sum']
-            commission_sum = filtered_objects.aggregate(Sum('total_commission'))[
-                'total_commission__sum']
-            my_context.update({
-                'earning_sum': earning_sum,
-                'order_sum': order_sum,
-                'commission_sum': commission_sum,
-            })
-
-            return super(OrderAdmin, self).changelist_view(request,
-                                                        extra_context=my_context)
-
 
         return super(OrderAdmin, self).changelist_view(request,
                                                     extra_context=my_context)

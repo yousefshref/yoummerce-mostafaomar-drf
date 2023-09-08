@@ -94,7 +94,7 @@ class Order(models.Model):
     note = models.TextField(max_length=500, null=True, blank=True)
     state = models.ForeignKey(State, null=True, blank=True, on_delete=models.CASCADE)
     shipping = models.IntegerField(null=True, blank=True, default=0)
-    is_arrived = models.ForeignKey(Shipped, default=Shipped.objects.get(pk=4).pk , related_name='is_arrived', null=True, blank=True, on_delete=models.CASCADE)
+    is_arrived = models.ForeignKey(Shipped, default=Shipped.objects.get(pk=4).pk, related_name='is_arrived', null=True, blank=True, on_delete=models.CASCADE)
     discount = models.IntegerField(null=True, blank=True, default=0)
     total_order = models.IntegerField(null=True, blank=True, default=0)
     total_earning = models.IntegerField(null=True, blank=True, default=0)
@@ -221,21 +221,21 @@ class OrderItems(models.Model):
                 self.product.save()
         else:
             raise MyException('No Enough Stock')
-        
+
 
         super(OrderItems, self).save(*args, **kwargs)
-        
+
         if self.order_item_id:
             self.order_item.save()
 
         # returned
-        order = Order.objects.get(id=self.order_item.pk)
-        if self.is_returned == True:
-            order.is_arrived = Shipped.objects.get(id=8)
-            order.save()
+        # order = Order.objects.get(id=self.order_item.pk)
+        # if self.is_returned == True:
+        #     order.is_arrived = Shipped.objects.get(id=8)
+        #     order.save()
 
 
-            
+
 
     def delete(self, *args, **kwargs):
         self.product.stock = self.product.stock + self.quantity
