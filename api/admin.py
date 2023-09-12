@@ -78,11 +78,7 @@ class OrderAdmin(admin.ModelAdmin):
         for item in items:
             if item.is_returned == True:
                 return format_html('<span style="background:red;">edited</span>',)
-            # break
 
-    # def edited(self, obj):
-    #     if obj.id == 158:
-    #         return format_html('<span style="background:red;">edited</span>',)
 
     fields = ('user', 'name', 'address', 'phone', 'phone2', 'state', 'shipping', 'is_arrived', 'discount', 'note', 'total_order', 'total_earning', 'total_commission',)
 
