@@ -321,6 +321,14 @@
         "documentation": {}
     },
     {
+        "label": "format_html",
+        "importPath": "django.utils.html",
+        "description": "django.utils.html",
+        "isExtraImport": true,
+        "detail": "django.utils.html",
+        "documentation": {}
+    },
+    {
         "label": "AppConfig",
         "importPath": "django.apps",
         "description": "django.apps",
@@ -631,7 +639,7 @@
         "kind": 6,
         "importPath": "api.admin",
         "description": "api.admin",
-        "peekOfCode": "class OrderItemInline(admin.TabularInline):\n    fields = ('product', 'is_returned', 'quantity', 'order_item_sell_price', 'order_earning', 'order_ecommission')\n    model = models.OrderItems\n    extra = 1\n    def get_fields(self, request, obj=None):\n        if not request.user.is_superuser:\n            self.fields = ('product', 'quantity', 'order_item_sell_price', 'order_ecommission',)\n        return super().get_fields(request, obj)\nclass OrderAdmin(admin.ModelAdmin):\n    list_display = ('id', 'note', 'get_list_display', 'is_arrived','discount','state')",
+        "peekOfCode": "class OrderItemInline(admin.TabularInline):\n    fields = ('product', 'is_returned', 'quantity', 'order_item_sell_price', 'order_earning', 'order_ecommission')\n    model = models.OrderItems\n    extra = 1\n    def get_fields(self, request, obj=None):\n        if not request.user.is_superuser:\n            self.fields = ('product', 'quantity', 'order_item_sell_price', 'order_ecommission',)\n        return super().get_fields(request, obj)\nclass OrderAdmin(admin.ModelAdmin):\n    list_display = ('id', 'get_row_css', 'note', 'get_list_display', 'is_arrived','discount','state')",
         "detail": "api.admin",
         "documentation": {}
     },
@@ -640,7 +648,7 @@
         "kind": 6,
         "importPath": "api.admin",
         "description": "api.admin",
-        "peekOfCode": "class OrderAdmin(admin.ModelAdmin):\n    list_display = ('id', 'note', 'get_list_display', 'is_arrived','discount','state')\n    fields = ('user', 'name', 'address', 'phone', 'phone2', 'state', 'shipping', 'is_arrived', 'discount', 'note', 'total_order', 'total_earning', 'total_commission',)\n    list_editable = ('is_arrived','state','discount',)\n    search_fields = ('user__username', 'name', 'address','total_order',)\n    actions = (\"arrived\", \"ontheway\",\"pending\",\"parted\",\"mortaga3\",\"cancel\")\n    list_filter = (\n        (\"date\", DateRangeFilterBuilder()),\n        'is_arrived'\n    )",
+        "peekOfCode": "class OrderAdmin(admin.ModelAdmin):\n    list_display = ('id', 'get_row_css', 'note', 'get_list_display', 'is_arrived','discount','state')\n    fields = ('user', 'name', 'address', 'phone', 'phone2', 'state', 'shipping', 'is_arrived', 'discount', 'note', 'total_order', 'total_earning', 'total_commission',)\n    list_editable = ('is_arrived','state','discount',)\n    search_fields = ('user__username', 'name', 'address','total_order',)\n    actions = (\"arrived\", \"ontheway\",\"pending\",\"parted\",\"mortaga3\",\"cancel\")\n    list_filter = (\n        (\"date\", DateRangeFilterBuilder()),\n        'is_arrived'\n    )",
         "detail": "api.admin",
         "documentation": {}
     },

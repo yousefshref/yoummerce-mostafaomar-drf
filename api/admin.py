@@ -4,6 +4,8 @@ from django.db.models import Sum
 from django.db.models import Q
 from rangefilter.filters import DateRangeFilterBuilder
 from django.contrib.auth.models import Group
+from django.utils.html import format_html
+
 
 
 class ProductImageInline(admin.TabularInline):
@@ -69,7 +71,18 @@ class OrderItemInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'note', 'get_list_display', 'is_arrived','discount','state')
+    list_display = ('id', 'edited', 'note', 'get_list_display', 'is_arrived','discount','state')
+
+    def edited(self, obj):
+        items = models.OrderItems.objects.filter(order_item=obj.id)
+        for item in items:
+            if item.is_returned == True:
+                return format_html('<span style="background:red;">edited</span>',)
+            # break
+
+    # def edited(self, obj):
+    #     if obj.id == 158:
+    #         return format_html('<span style="background:red;">edited</span>',)
 
     fields = ('user', 'name', 'address', 'phone', 'phone2', 'state', 'shipping', 'is_arrived', 'discount', 'note', 'total_order', 'total_earning', 'total_commission',)
 
@@ -82,23 +95,20 @@ class OrderAdmin(admin.ModelAdmin):
         'is_arrived'
     )
 
-
-
     inlines = [OrderItemInline]
 
     # delete earning from fiekds if not superuser
     def get_list_display(self, request):
         if request.user.is_superuser:
-            return ('id','user', 'name', 'address', 'phone', 'phone2', 'is_arrived', 'state', 'discount', 'note', 'total_order', 'shipping', 'total_earning', 'total_commission', 'date',)
+            return ('id','edited','user', 'name', 'address', 'phone', 'phone2', 'is_arrived', 'state', 'discount', 'note', 'total_order', 'shipping', 'total_earning', 'total_commission', 'date',)
 
         if not request.user.is_superuser:
-            return ('id','user', 'name', 'address', 'phone', 'phone2', 'is_arrived', 'state', 'discount', 'note', 'total_order', 'shipping', 'total_commission', 'date',)
+            return ('id','edited','user', 'name', 'address', 'phone', 'phone2', 'is_arrived', 'state', 'discount', 'note', 'total_order', 'shipping', 'total_commission', 'date',)
 
     def get_fields(self, request, obj=None):
         if not request.user.is_superuser:
             self.fields = ('user', 'name', 'address', 'phone', 'phone2', 'state', 'shipping', 'is_arrived', 'discount', 'note', 'total_order', 'shipping', 'total_commission',)
         return super().get_fields(request, obj)
-
 
 
     change_list_template = 'order/change_list.html'
@@ -144,42 +154,39 @@ class OrderAdmin(admin.ModelAdmin):
             obj.save()
 
 
-    # sums
-    def sum_of_order(self):
-        order_model = models.Order.objects.all()
-        order_sum = order_model.aggregate(Sum('total_order'))[
-            'total_order__sum']
-        return order_sum
-
-    def sum_of_earning(self):
-        order_model = models.Order.objects.all()
-        earning_sum = order_model.aggregate(Sum('total_earning'))[
-            'total_earning__sum']
-        return earning_sum
-
-    def sum_of_commission(self):
-        order_model = models.Order.objects.all()
-        commission_sum = order_model.aggregate(Sum('total_commission'))[
-            'total_commission__sum']
-        return commission_sum
-
     def changelist_view(self, request, extra_context=None):
         response = super().changelist_view(request, extra_context=extra_context)
         queryset = models.Order.objects.all()
-            
-        
+
         if request.GET.get('date__range__gte') and request.GET.get('date__range__lte'):
             queryset = models.Order.objects.filter(date__range=[request.GET.get('date__range__gte'), request.GET.get('date__range__lte')])
-            
+
+
         if request.GET.get('q'):
             queryset = models.Order.objects.filter(Q(user__username__icontains=request.GET.get('q')) | Q(name__icontains=request.GET.get('q')) | Q(address__icontains=request.GET.get('q')) | Q(total_order__icontains=request.GET.get('q')))
+
             
+        if request.GET.get('is_arrived__id__exact'):
+            queryset = models.Order.objects.filter(is_arrived=request.GET.get('is_arrived__id__exact'))
+
+
         if request.GET.get('q') and request.GET.get('date__range__gte') and request.GET.get('date__range__lte'):
             queryset = models.Order.objects.filter(date__range=[request.GET.get('date__range__gte'), request.GET.get('date__range__lte')]).filter(Q(user__username__icontains=request.GET.get('q')) | Q(name__icontains=request.GET.get('q')) | Q(address__icontains=request.GET.get('q')) | Q(total_order__icontains=request.GET.get('q')))
-            
-        if request.GET.get('is_arrived__id__exact') and request.GET.get('date__range__gte') and request.GET.get('date__range__lte'):
+
+
+        if request.GET.get('q') and request.GET.get('is_arrived__id__exact'):
+            queryset = models.Order.objects.filter(is_arrived=request.GET.get('is_arrived__id__exact')).filter(Q(user__username__icontains=request.GET.get('q')) | Q(name__icontains=request.GET.get('q')) | Q(address__icontains=request.GET.get('q')) | Q(total_order__icontains=request.GET.get('q')))
+
+
+        if request.GET.get('date__range__gte') and request.GET.get('date__range__lte') and request.GET.get('is_arrived__id__exact'):
             queryset = models.Order.objects.filter(date__range=[request.GET.get('date__range__gte'), request.GET.get('date__range__lte')]).filter(is_arrived=request.GET.get('is_arrived__id__exact'))
+
             
+        if request.GET.get('date__range__gte') and request.GET.get('date__range__lte') and request.GET.get('is_arrived__id__exact') and request.GET.get('q'):
+            queryset = models.Order.objects.filter(date__range=[request.GET.get('date__range__gte'), request.GET.get('date__range__lte')]).filter(Q(user__username__icontains=request.GET.get('q')) | Q(name__icontains=request.GET.get('q')) | Q(address__icontains=request.GET.get('q')) | Q(total_order__icontains=request.GET.get('q'))).filter(is_arrived=request.GET.get('is_arrived__id__exact'))
+
+
+
         order_sum = queryset.aggregate(Sum('total_order'))[
             'total_order__sum']
         

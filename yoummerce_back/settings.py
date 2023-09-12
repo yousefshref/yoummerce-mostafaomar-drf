@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'rest_framework', # Django rest framework (drf)
     'rest_framework.authtoken', # Adding token based authentication from drf
     "corsheaders",
+    "liststyle",
 ]
 PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
