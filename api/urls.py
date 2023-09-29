@@ -23,12 +23,14 @@ urlpatterns = [
     path('products/<int:pk>', views.one_product),
 
     path('cart/', views.create_update_cart),
+    path('carts/', views.get_carts),
     path('cart/<int:pk>/', views.get_cart),
     path('cart/<int:pk>/delete_user_carts/', views.delete_user_carts),
     path('cart/<int:pk>/delete/', views.delete_cart),
 
 
     path('orders/<int:userpk>', views.get_user_orders),
+    path('all_orders/', views.get_orders),
 
 
     path('create_order/', views.create_order),

@@ -14,7 +14,7 @@ class Category(models.Model):
 
 class Product(models.Model):
     title = models.CharField(max_length=100, null=True, blank=True)
-    description = models.TextField(max_length=100, null=True, blank=True)
+    description = models.TextField(max_length=1000, null=True, blank=True)
     buy_price = models.IntegerField(blank=True, null=True, default=0)
     total_buy_price = models.IntegerField(blank=True, null=True, default=0)
     sell_price = models.IntegerField(blank=True, null=True, default=0)
@@ -24,6 +24,7 @@ class Product(models.Model):
     total_earning = models.IntegerField(blank=True, null=True, default=0)
     commission = models.IntegerField(blank=True, null=True, default=0)
     stock = models.IntegerField(blank=True, null=True, default=0)
+    free_shipping = models.BooleanField(default=False, null=True, blank=True)
     add_stock = models.IntegerField(blank=True, null=True, default=0)
     remove_stock = models.IntegerField(blank=True, null=True, default=0)
     category = models.ForeignKey(Category, blank=True, null=True, on_delete=models.CASCADE)
@@ -103,8 +104,16 @@ class Order(models.Model):
 
     def save(self, *args, **kwargs):
         order_items = OrderItems.objects.filter(order_item=self.id)
-
-        self.shipping = State.objects.get(name=self.state.name).shipping
+        
+        # check if free shipping
+        products = OrderItems.objects.filter(order_item__pk=self.pk)
+        for i in products:
+            print(i.product.free_shipping)
+            if i.product.free_shipping == True:
+                self.shipping = 0
+                break
+            else:
+                self.shipping = State.objects.get(name=self.state.name).shipping
 
         if(self.discount is not 0):
             self.total_order = order_items.aggregate(Sum('order_item_sell_price'))['order_item_sell_price__sum'] + self.discount
@@ -144,19 +153,20 @@ class Order(models.Model):
         # returned
         returned_items = OrderItems.objects.filter(order_item=self.pk, is_returned=True)
 
-        if self.is_arrived.pk == 8 and returned_items:
+        if returned_items:
             self.total_order = self.total_order - returned_items.aggregate(Sum('order_item_sell_price'))['order_item_sell_price__sum']
             self.total_earning = self.total_earning - returned_items.aggregate(Sum('order_earning'))['order_earning__sum']
             self.total_commission = self.total_commission - returned_items.aggregate(Sum('order_ecommission'))['order_ecommission__sum']
 
 
-        try:
-            self.total_order = self.total_order + self.state.shipping
-        except:
-            print('aaaa')
+        # try:
+        self.total_order = self.total_order + self.shipping
+        # except:
+            # print('aaaa')
 
         super(Order, self).save(*args, **kwargs)
 
+        self.total_order = self.total_order + self.shipping
         # auto delete if there's no order items
 
 

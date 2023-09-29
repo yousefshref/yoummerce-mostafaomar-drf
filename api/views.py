@@ -44,6 +44,7 @@ def product(request):
     # GET PRODUCT WITH CATEGORIES AND SEARCH PARAMETERS
     category_param = request.GET.get('category', '')
     search_param = request.GET.get('search', '')
+    isfree = request.GET.get('isfree', '')
 
     from_price_param = request.GET.get('from', '')
     to_price_param = request.GET.get('to', '')
@@ -61,6 +62,10 @@ def product(request):
     # Filter with price range
     if from_price_param and to_price_param:
         products = products.filter(sell_price__gte=from_price_param, sell_price__lte=to_price_param)
+
+    # Filter with free shipping
+    if isfree:
+        products = products.filter(free_shipping=True)
 
     # Order by ID
     products = products.order_by('title')
@@ -112,6 +117,13 @@ def create_update_cart(request):
 
 
 @api_view(['GET'])
+def get_carts(request):
+    carts = models.Cart.objects.all()
+    serializer = serializers.CartSerializer(carts, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
 def get_state(request):
     states = models.State.objects.all()
     serializer = serializers.StateSerializer(states, many=True)
@@ -143,6 +155,29 @@ def delete_cart(request, pk):
     cart = models.Cart.objects.get(id=pk)
     cart.delete()
     return Response({"Success":"The Cart has been deleted"})
+
+
+@api_view(['GET'])
+def get_orders(request):
+    q = models.Order.objects.all()
+    name_param = request.GET.get('name')
+
+    status_param = request.GET.get('status')
+
+    _from = request.GET.get('from')
+    _to = request.GET.get('to')
+
+    if name_param:
+        q = q.filter(name__icontains=name_param)
+
+    if status_param:
+        q = q.filter(is_arrived__name=status_param)
+
+    if _from and _to:
+        q = q.filter(date__range=[_from, _to])
+
+    ser = serializers.OrderSerializer(q.order_by('-id'), many=True)
+    return Response(ser.data)
 
 
 @api_view(['GET'])
